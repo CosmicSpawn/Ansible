@@ -1,15 +1,15 @@
 ---
 
 - hosts: all
-  become: true #become root
+  become: true
   tasks:
 
-  - name: install apache2 package
+  - name: remove apache2 package
     apt:
       name: apache2
       state: absent
 
-  - name: add php support for apache
+  - name: remove php support for apache
     apt:
       name: libapache2-mod-php
       state: absent
