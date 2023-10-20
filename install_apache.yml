@@ -1,43 +1,13 @@
 ---
 
 - hosts: all
-  become: true #become root
+  become: true
   tasks:
 
-# Debian & Ubuntu
-  - name: update repository index
-    apt:
+  - name: Install apache and php packages
+    package:
+      name:
+        - "{{ apache_package }}"
+        - "{{ php_package }}"
+      state: latest
       update_cache: yes
-    when: ansible_distribution in ["Debian", "Ubuntu"]
-
-  - name: install apache2 package
-    apt:
-      name: apache2
-      state: latest
-    when: ansible_distribution in ["Debian", "Ubuntu"]
-
-  - name: add php support for apache
-    apt:
-      name: libapache2-mod-php
-      state: latest
-    when: ansible_distribution in ["Debian", "Ubuntu"]
-
-# Arch-Linux
-  - name: update repository index
-    pacman:
-      update_cache: yes
-    when: ansible_distribution == "Archlinux"
-
-  - name: install apache2 package
-    pacman:
-      name: apache
-      state: latest
-    when: ansible_distribution == "Archlinux"
-
-  - name: add php support for apache
-    pacman:
-      name: php
-      state: latest
-      name: php-apache
-      state: latest
-    when: ansible_distribution == "Archlinux"
