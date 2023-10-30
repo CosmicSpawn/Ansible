@@ -1,0 +1,40 @@
+---
+
+- hosts: all
+  become: true
+  pre_tasks:
+
+  - name: Install updates (Arch Linux)
+    tags: always
+    pacman:
+      update_cache: true
+      upgrade: true
+    when: ansible_distribution == "Archlinux"
+
+  - name: Install updates (Debian, Ubuntu)
+    tags: always
+    apt:
+      upgrade: dist
+      update_cache: yes
+    when: ansible_distribution in ["Debian", "Ubuntu"]
+
+  - name: create s1m0ne user
+    tags: always
+    user:
+      name: s1m0ne
+      groups: root
+
+  - name: add ssh key for s1m0ne
+    tags: always
+    authorized_key:
+      user: s1m0ne
+      key: "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIOHVryz5w+o8yrkQlVYg3W/8bRIyHT5yakf7CbGlqf1K Ansible-2023-10-13"
+
+  - name: add sudoers file for s1m0ne
+    tags: always
+    copy:
+      src: sudoer_s1m0ne
+      dest: /etc/sudoers.d/s1m0ne
+      owner: root
+      group: root
+      mode: 0440
