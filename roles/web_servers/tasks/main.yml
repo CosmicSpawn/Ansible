@@ -1,45 +1,26 @@
-- name: Install apache2 and php packages for Debian and Ubuntu
-  tags: apache,apache2,debian,ubuntu
-  apt:
+- name: install web server packages
+  tags: apache,apache2,httpd,ubuntu
+  package:
     name:
-      - apache2
-      - libapache2-mod-php
+      - "{{ apache_package_name }}"
+      - "{{ php_package_name }}"
     state: latest
-  when: ansible_distribution in ["Debian", "Ubuntu"]
 
-- name: install apache and php packages for Arch Linux
-  tags: apache,archlinux
-  pacman:
-    name:
-      - apache
-      - php
-      - php-apache
-    state: latest
-  when: ansible_distribution == "Archlinux"
-
-- name: start and enable apache (Arch Linux)
-  tags: apache,archlinux,httpd
+- name: start and enable apache service
+  tags: apache,httpd
   service:
-    name: httpd
+    name: "{{ apache_service }}"
     state: started
     enabled: yes
-  when: ansible_distribution == "Archlinux"
 
 - name: change e-mail address for admin
   tags: apache,archlinux,httpd
   lineinfile:
     path: /etc/httpd/conf/httpd.conf
     regexp: '^ServerAdmin'
-    line: ServerAdmin somebody@somewhere.net
+    line: ServerAdmin somebody@somewhere.com
   when: ansible_distribution == "Archlinux"
-  register: httpd
-
-- name: restart httpd (Arch Linux)
-  tags: apache,centos,httpd
-  service:
-    name: httpd
-    state: restarted
-  when: httpd.changed
+  notify: restart_apache
 
 - name: copy default html file for site (Debian and Ubuntu)
   tags: apache,html
