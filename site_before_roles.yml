@@ -1,0 +1,139 @@
+---
+
+- hosts: all
+  become: true
+  pre_tasks:
+
+  - name: Install updates (Arch Linux)
+    tags: always
+    pacman:
+      update_cache: true
+      upgrade: true
+    changed_when: false
+    when: ansible_distribution == "Archlinux"
+
+  - name: Install updates (Debian, Ubuntu)
+    tags: always
+    apt:
+      update_cache: yes
+      upgrade: dist
+    changed_when: false
+    when: ansible_distribution in ["Debian", "Ubuntu"]
+
+  - name: add ssh key for s1m0ne
+    tags: always
+    authorized_key:
+      user: s1m0ne
+      key: "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIOHVryz5w+o8yrkQlVYg3W/8bRIyHT5yakf7CbGlqf1K Ansible-2023-10-13"
+
+- hosts: workstations
+  become: true
+  tasks:
+
+  - name: install unzip
+    package:
+      name: unzip
+
+  - name: install terraform
+    unarchive:
+      src: https://releases.hashicorp.com/terraform/0.12.28/terraform_0.12.28_linux_amd64.zip
+      dest: /usr/local/bin
+      remote_src: yes
+      mode: 0755
+      owner: root
+      group: root
+
+- hosts: web_servers
+  become: true
+  tasks:
+
+  - name: Install apache2 and php packages for Debian and Ubuntu
+    tags: apache,apache2,debian,ubuntu
+    apt:
+      name:
+        - apache2
+        - libapache2-mod-php
+      state: latest
+    when: ansible_distribution in ["Debian", "Ubuntu"]
+
+  - name: install apache and php packages for Arch Linux
+    tags: apache,archlinux
+    pacman:
+      name:
+        - apache
+        - php
+        - php-apache
+      state: latest
+    when: ansible_distribution == "Archlinux"
+
+  - name: start and enable apache (Arch Linux)
+    tags: apache,archlinux,httpd
+    service:
+      name: httpd
+      state: started
+      enabled: yes
+    when: ansible_distribution == "Archlinux"
+
+  - name: change e-mail address for admin
+    tags: apache,archlinux,httpd
+    lineinfile:
+      path: /etc/httpd/conf/httpd.conf
+      regexp: '^ServerAdmin'
+      line: ServerAdmin somebody@somewhere.net
+    when: ansible_distribution == "Archlinux"
+    register: httpd
+
+  - name: restart httpd (Arch Linux)
+    tags: apache,centos,httpd
+    service:
+      name: httpd
+      state: restarted
+    when: httpd.changed
+
+  - name: copy default html file for site (Debian and Ubuntu)
+    tags: apache,html
+    copy:
+      src: default_site.html
+      dest: /var/www/html/index.html
+      owner: root
+      group: root
+      mode: 0644
+    when: ansible_distribution in ["Debian", "Ubuntu"]
+
+  - name: copy default html file for site (Arch Linux)
+    tags: apache,html
+    copy:
+      src: default_site.html
+      dest: /srv/http/index.html
+      owner: root
+      group: root
+      mode: 0644
+    when: ansible_distribution == "Archlinux"
+
+- hosts: db_servers
+  become: true
+  tasks:
+
+  - name: Install mariadb package (Debian, Ubuntu)
+    tags: mariadb,db,debian,ubuntu
+    apt:
+      name: mariadb-server
+      state: latest
+    when: ansible_distribution in ["Debian", "Ubuntu"]
+
+  - name: Install mariadb package (Arch Linux)
+    tags: mariadb,db,archlinux
+    apt:
+      name: mariadb
+      state: latest
+    when: ansible_distribution == "Archlinux"
+
+- hosts: file_servers
+  become: true
+  tasks:
+
+  - name: Install samba package
+    tags: samba
+    package:
+      name: samba
+      state: latest
