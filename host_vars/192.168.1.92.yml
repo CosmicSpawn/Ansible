@@ -1,4 +1,6 @@
-# Server: Demo01 - Debian GNU/Linux
+# Server: Demo03 - Debian GNU/Linux
 apache_package_name: apache2
 apache_service: apache2
 php_package_name: libapache2-mod-php
+ssh_users: "cosmic-spawn s1m0ne"
+ssh_template_file: sshd_config_debian.j2
