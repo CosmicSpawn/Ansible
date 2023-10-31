@@ -1,0 +1,13 @@
+- name: Install mariadb package (Debian, Ubuntu)
+  tags: mariadb,db,debian,ubuntu
+  apt:
+    name: mariadb-server
+    state: latest
+  when: ansible_distribution in ["Debian", "Ubuntu"]
+
+- name: Install mariadb package (Arch Linux)
+  tags: mariadb,db,archlinux
+  apt:
+    name: mariadb
+    state: latest
+  when: ansible_distribution == "Archlinux"
